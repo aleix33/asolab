@@ -1,0 +1,303 @@
+#########################################################################
+PRACTICA 1 REPETIDA
+#########################################################################
+
+Now, to partition the disk use the command fdisk on the device /dev/usb . With this command you can:
+
+umount /dev/sdb*
+
+Per veure la mida del disck desmuntar totes les particions dins d'fdisc fer F.
+
+Seleccionar la primera partició com a booteble amb la comanda fdisk opció "a".
+
+
+formatar la partició de swap (si cal)
+mkswap device
+swapon device
+
+Crear filesystems:
+mkfs.fstype device
+
+mkdir linux
+linux/home -> sdb6
+linux/usr/local -> sdb5
+
+
+Per descarregar la instal·lació des d'asoserver:
+cd /linux
+wget -O- ftp://asoserver.pc.ac.upc.edu/packages/aso-install.tar.gz | tar xzf -
+
+
+Després de descarregar no cal crear les carpetes /dev,proc,sys peqruè  ja hi són.
+
+mount -o bind /dev /linux/dev
+mount -o bind /sys /linux/sys
+mount -o bind /proc /linux/proc
+
+Using bind mounts, we can mount all, or even part of an already-mounted filesystem to another location, and have the filesystem accessible from both mount points at the same time! És com un punter.
+
+
+/etc/fstab:
+
+Add your swap partition:
+device none swap defaults 0 0
+
+Add root partition:
+device / ext4 defaults 0 1
+
+A les particions que tenen file system:
+device mountpoint fstype defaults 0 2
+
+
+chroot /linux <- canviar l'arrel
+
+grub-install /dev/sdb
+grub update
+
+passwd aso
+
+shutdown -r now <- restart
+
+
+Per configurar la xarxa:
+Modifiquem el fitxer /etc/network/interfaces i hi afegim
+	auto eno1
+	iface eno1 inet dhcp
+On eno1 és la interfície de connexió (consultar amb ifconfig -a). Per poder activar la xarxa sense reiniciar cal fer:
+	ifup eno1
+
+Podem comprovar que està activa fent un ping www.google.com
+
+
+#########################################################################
+PRACTICA 1
+#########################################################################
+
+1.5.1 tune2fs -i 28d dev/sdb1
+1.5.2 fitxer etc/
+comanda grep
+fitxers issue.net o issue
+10.10.41.101 /24
+1.5.3 
+ip addr
+ip route add default via 10.10.41.1
+amb ping no tenim resposta però veiem que ha resolt el nom
+network.target
+
+
+#########################################################################
+PRACTICA 2
+#########################################################################
+
+2.2
+a) open (man ftp)
+b) nlist
+c) get
+d) mget
+e) -t, --list
+f) -z, --gzip, --gunzip, --unzip (man tar)
+g) -x, --extract
+h) per al .gz es fa servir -z; per al bz2 la -j
+i) es fa amb ln
+j) el soft és com un accesodirecto de windows i es fa amb ln -s;
+k) Donar els diferent paths on pot trobar els executables de les comandes
+
+taula 2.2
+Install a package		-i or --install		file
+Uninstall a package		-r or --remove		file			
+Purge a package			-P or --purge		file
+List package			-l
+List files in a package		-c or --content		package
+
+El name a l'ftp és anonymous i el password no cal, es prem enter
+
+2.4.1
+que el purge no fa el l'escript previ.(Guillem: que el purge borra els fitxers de configuració, l'uninstall no)
+
+apt-get install x-window-system
+
+apt-cache search [patern] per a buscar en els repositoris diponibles
+apt-get install task-kde-desktop - KDE
+
+fem connexió ftp i baixem lynx i lftp amb mget
+
+2.4.2
+
+apt-get upgrade
+
+2.4.3
+
+apt-get install gcc
+apt-get install libc6-dev
+apt-get install iceweasel
+
+apt-get clean esborra els paquets d'instal·lació que ha usat per instalar-los.
+
+apt-get autoclean esborra només els que ja no estan disponibles per descarregar.
+
+2.4.4
+
+Un cop descarregat, creem la carpeta, donem permís d'execució i l'executem amb ./fitxer.bin
+
+L'error és que no existeix el fitxer.
+
+L'error és degut a que no el busca al lloc on està instal·lat.
+
+ln -s /opt/javax.y/bin/java /usr/bin/javax.y
+
+Dóna error al fer el ./configure perquè falta una llibreria. Es soluciona : apt-get install libreadline-dev
+
+Per borrar els fitxers usats fem :make clean
+
+Amb: make uninstall
+
+#########################################################################
+PRACTICA 3
+#########################################################################
+
+
+PAG 7
+
+	imprimeix el camp 6 (home de cada usuari) del fitxer passwd
+	
+	l'anterior exigeix que sigui concretament l'string d'usuari mentre que el segon n'hi haurà prou en què el contingui. Usa el ^ per indicar el principi de linia i el \> per indicar final de paraula.
+	
+	
+
+
+#########################################################################
+PRACTICA 4
+#########################################################################
+
+Cal usar umask i els bits especials dels permisos, sticky bit
+
+Amb quina comanda es poden buscar tots els fitxers d'un usuari i esborrar-los?
+	find /home -user NOM_USER -exec rm -fr {} \
+	deluser --remove-all-files NOM_USER
+	
+Ara volem fer un backup amb tots els fitxers de l'usuari? ( tingueu en compte que
+potser una llista molt llarga de fitxers. Pista: feu servir xargs )
+
+	find /home -user NOM_USER | xargs -I 'symbol' cp -r 'symbol' CARPETA_DESTI
+	
+Quin problema hi ha amb els fitxers que tinguin espais al seu nom? Com es pot
+resoldre això? ( veure les opcions de la comanda xargs o la opció -exec de find )
+
+	afegint l'opció -O a xargs
+	
+No sabem fer (com executar asosh? canviem propietari? 
+
+
+
+#########################################################################
+PRACTICA 5
+#########################################################################
+
+Per veure els punts de muntatge /proc/mounts
+Per veure les particions fdisk -l
+
+Creem la carpeta backup a /
+Fem un mkfs -t ext4 /dev/sdb3 per crear el sistema de fitxers, i la muntem amb mount /dev/sdb3 /backup
+
+Per muntar la carpetra en temps de boot amb read only, afegim a /etc/fstab
+/dev/sdb3 /backup ext4 ro,defaults 0 2
+
+
+Com es pot fer perquè el nom del fitxer de backup inclogui automàticament la
+data del backup? per exemple que sigui backup-etc-nivell0-200712041030
+(any mes dia hora minut segon). Utilitza la comanda date.
+
+tar -cvpf backup-$(date +%Y-%m-%d-%H-%M-%S).tar /root
+
+Per què no és aconsellable comprimir el fitxer de backup?
+
+Perquè és més llarg i no s'estalvia massa espai.
+
+Si volguéssim comprimir el fitxer de backup quina opció afegiriem a la
+comanda tar?
+
+-z
+
+Quina opció de tar permet excloure un llistat de fitxers del backup?
+
+--exclude-ignore=/path/excludes
+
+Com heu utilitzat la comanda md5sum per produir la signatura md5?
+
+md5sum Nombackup.tar > nomhash.asc
+
+
+Quina comanda heu utilitzat per fer la còpia incremental?
+
+tar -cvpf backup-$(date +%Y-%m-%d-%H-%M-%S).tar --newer="2018-05-21 21:00" /root
+
+Quin problema potencial hi ha al utilitzar el fitxer .tar de la còpia completa per
+obtenir la data del backup per fer la còpia incremental? Com es pot resoldre
+aquest problema?
+
+Utilitzar la data del nom de l'últim backup en comptes de la data del fitxer en sí, ja que mentre es fa el backup es poden modificar fitxers que després no es contemplarien com a modificats..
+
+Quina comanda heu fet servir per fer la segona còpia incremental?
+
+tar -cvpf backup-$(date +%Y-%m-%d-%H-%M-%S).tar --newer="NOM_DEL_FITXER_DEL_BACKUP_ANTERIOR.tar" /root
+
+Com es pot verificar que el contingut del fitxer de backup sigui el mateix que
+el directori que s'ha copiat?
+
+(NO HO SABEM)
+
+Com es pot verificar, fent ús de la comanda md5sum, la integritat d'una còpia
+de seguretat, és a dir, que el fitxer no ha estat modificat des que es va
+realitzar la còpia?
+
+Comparant el resultat dels dos hashs.
+
+En quin ordre cal restaurar els fitxers per tal que el resultat final sigui el
+desitjat? Quines comandes heu utilitzat?
+
+tar -xvf BACKUP.tar 
+
+Què ha passat amb els fitxers que havíeu esborrat abans de fer la segona
+còpia incremental? Com es pot detectar que aquest fitxers han estat
+esborrats? Quan seran esborrats de les còpies de seguretat?
+
+Només pot fer-se des de backups totals comparant les llistes dels seus continguts i detectant els fitxers esborrats. Amb incrementals no es pot.
+
+Quines comandes heu fet servir per recuperar només una part de les còpies de
+seguretat fetes amb tar?
+
+tar -xvf foo.tar dir1/dir2/dir3/DIR_A_DESCOMPRIMIR
+
+Quin és el significat de les opcions -avz de l'rsync?
+
+-a  archive mode, archive mode allows copying files recursively and it also preserves symbolic links, file permissions, user & group ownerships and timestamp
+-v verbose
+-z compress
+
+(NOTA CLASSE: /etc/ssh/sshd_config modificar/descomentar PermitRootLogin -> yes #també cal reiniciar el servei)
+
+
+
+#########################################################################
+NOTES EXTRES
+#########################################################################
+
+
+editar BBDD:
+vipw
+vigr
+passwd -> canviar contrasenya
+chage -> canviar parametres shadow
+chown
+chmod
+visudo
+donar privilegis a usuari: usermod -aG sudo user #afegir l'usuari user al grup sudo
+o afegir "user   ALL=(ALL:ALL) ALL" al fitxer sudoers
+
+PER INSTAL·LAR FIREFOX
+	apt-get install firefox-esr
+	
+
+
+
+
